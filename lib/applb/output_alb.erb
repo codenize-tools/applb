@@ -1,0 +1,122 @@
+ec2 <%= vpc_id.inspect %> do
+  <%- lbs_by_name.each do |name, attr| -%>
+  elb_v2 <%= name.inspect %> do
+    subnets(
+    <%- attr[:availability_zones].each do |az| -%>
+      <%= az[:subnet_id].inspect %>, # <%= az[:zone_name] %>
+    <%- end -%>
+    )
+
+    security_groups(
+    <%- attr[:security_groups].each do |sg| -%>
+      <%= sg.inspect %>,
+    <%- end -%>
+    )
+
+    scheme(<%= attr[:scheme].inspect %>)
+
+    <%- unless tags_by_arn[attr[:load_balancer_arn]].empty? -%>
+    tags(
+    <%- tags_by_arn[attr[:load_balancer_arn]].each do |key, value| -%>
+      <%= key.inspect %> => <%= value.inspect %>,
+    <%- end -%>
+    )
+
+    <%- end -%>
+    ip_address_type(<%= attr[:ip_address_type].inspect %>)
+
+    attributes do
+      <%- attr[:attributes].each do |key, value|
+        case key
+        when "access_logs" then -%>
+      access_logs({
+        s3_enabled: <%= value[:s3][:enabled] %>,
+	s3_bucket: <%=  value[:s3][:bucket].inspect %>,
+	s3_prefix: <%=  value[:s3][:prefix].inspect %>,
+      })
+      <%- else -%>
+      <%= key.gsub('.', ' ') %>: <%= value %>
+      <%- end
+      end
+      -%>
+    end
+
+    target_groups do
+      <%- attr[:target_groups].each do |target_group| -%>
+      target_group <%= target_group.target_group_name.inspect %> do
+        protocol <%= target_group.protocol.inspect %>
+        port <%= target_group.port %>
+        vpc_id <%= vpc_id.inspect %>
+        health_check_interval_seconds <%= target_group.health_check_interval_seconds %>
+        health_check_path <%= target_group.health_check_path.inspect %>
+        health_check_port <%= target_group.health_check_port.inspect %>
+        health_check_protocol <%= target_group.health_check_protocol.inspect %>
+        health_check_timeout_seconds <%= target_group.health_check_timeout_seconds %>
+        healthy_threshold_count <%= target_group.healthy_threshold_count %>
+        unhealthy_threshold_count <%= target_group.unhealthy_threshold_count %>
+        matcher http_code: <%= target_group.matcher.http_code.inspect %>
+      end
+      <%- end -%>
+    end
+
+    listeners do
+      <%- attr[:listeners].each do |listener| -%>
+      listener do
+	<%- listener.certificates.each do |certificate| -%>
+        certificates certificate_arn: <%= certificate.certificate_arn.inspect %>
+	<%- end -%>
+	<%- if listener.ssl_policy -%>
+	ssl_policy <%= listener.ssl_policy.inspect %>
+	<%- end -%>
+	port <%= listener.port %>
+	protocol <%= listener.protocol.inspect %>
+	<%- listener.default_actions.each do |action| -%>
+
+        default_actions(
+          target_group_name: <%= attr[:target_groups].find { |target_group| target_group.target_group_arn == action.target_group_arn }.target_group_name.inspect %>,
+          target_group_arn: <%= action.target_group_arn.inspect %>,
+	  type: <%= action.type.inspect %>,
+        )
+	<%- end -%>
+
+        rules do
+          <%- if attr[:rules_by_listener_arn][listener.listener_arn].reject(&:is_default).empty? -%>
+          # no rules
+          <%- end -%>
+	  <%- attr[:rules_by_listener_arn][listener.listener_arn].reject(&:is_default).each do |rule| -%>
+	  rule do
+            rule_arn <%= rule.rule_arn.inspect %>
+            priority <%= rule.priority.inspect %>
+
+            <%- rule.actions.each do |action| -%>
+	    actions(
+              target_group_name: <%= attr[:target_groups].find { |target_group| target_group.target_group_arn == action.target_group_arn }.target_group_name.inspect %>,
+              target_group_arn: <%= action.target_group_arn.inspect %>,
+	      type: <%= action.type.inspect %>,
+	    )
+
+            <%- end -%>
+	    conditions(
+	      <%- rule.conditions.each do |condition| -%>
+	      field: <%= condition.field.inspect %>,
+	      values: <%= condition.values.inspect %>,
+	      <%- end -%>
+	    )
+	  end
+            <%- if attr[:rules_by_listener_arn][listener.listener_arn].reject(&:is_default).last != rule -%>
+
+            <%- end -%>
+	  <%- end -%>
+        end
+      end
+        <%- if attr[:listeners].last != listener -%>
+
+        <%- end -%>
+      <%- end -%>
+    end
+  end
+    <%- if lbs_by_name.keys.last != name -%>
+
+    <%- end -%>
+  <%- end -%>
+end
