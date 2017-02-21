@@ -7,8 +7,6 @@ rvm:
 before_install:
 - openssl aes-256-cbc -K $encrypted_be43a4149bae_key -iv $encrypted_be43a4149bae_iv
   -in aws_config.yml.enc -out spec/aws_config.yml -d
-- openssl aes-256-cbc -K $encrypted_6dd48340d37f_key -iv $encrypted_6dd48340d37f_iv
-  -in aws_config.yml.enc -out aws_config.yml -d
 - gem install bundler
 matrix:
   allow_failures:
