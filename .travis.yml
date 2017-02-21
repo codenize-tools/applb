@@ -4,7 +4,10 @@ rvm:
 - 2.3.3
 - 2.4.0
 - ruby-head
-before_install: gem install bundler
+before_install:
+- openssl aes-256-cbc -K $encrypted_6dd48340d37f_key -iv $encrypted_6dd48340d37f_iv
+  -in aws_config.yml.enc -out aws_config.yml -d
+- gem install bundler
 matrix:
   allow_failures:
   - rvm: ruby-head
