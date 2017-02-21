@@ -147,8 +147,8 @@ RSpec.describe Applb::DSL::EC2::LoadBalancer do
     let(:lb_name) { 'applb-test-001' }
 
     it 'should create load balancer' do
-      expect(lb.availability_zones.map { |h| h[:subnet_id] }).to eq(AWS_CONFIG[:subnets])
-      expect(lb.security_groups).to eq(AWS_CONFIG[:security_groups])
+      expect(lb.availability_zones.map { |h| h[:subnet_id] }.sort).to eq(AWS_CONFIG[:subnets].sort)
+      expect(lb.security_groups.sort).to eq(AWS_CONFIG[:security_groups].sort)
       expect(lb.scheme).to eq('internal')
       expect(lb.ip_address_type).to eq('ipv4')
       expect(lb.load_balancer_name).to eq(lb_name)
