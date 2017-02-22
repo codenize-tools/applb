@@ -48,8 +48,8 @@ Usage: applb [options]
                                      split export DSL file to 1 per load balancer
         --no-color
                                      no color
-    -i, --include_names NAMES        include ELB v2(ALB) names
-    -x, --exclude_names NAMES        exclude ELB v2(ALB) names by regex
+    -i, --include-names NAMES        include ELB v2(ALB) names
+    -x, --exclude-names NAMES        exclude ELB v2(ALB) names by regex
 ```
 
 ## ALBfile
