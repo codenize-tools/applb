@@ -31,8 +31,8 @@ ec2 <%= vpc_id.inspect %> do
         when "access_logs" then -%>
       access_logs({
         s3_enabled: <%= value[:s3][:enabled] %>,
-	s3_bucket: <%=  value[:s3][:bucket].inspect %>,
-	s3_prefix: <%=  value[:s3][:prefix].inspect %>,
+        s3_bucket: <%=  value[:s3][:bucket].inspect %>,
+        s3_prefix: <%=  value[:s3][:prefix].inspect %>,
       })
       <%- else -%>
       <%= key.gsub('.', ' ') %>: <%= value %>
@@ -62,51 +62,51 @@ ec2 <%= vpc_id.inspect %> do
     listeners do
       <%- attr[:listeners].each do |listener| -%>
       listener do
-	<%- listener.certificates.each do |certificate| -%>
+        <%- listener.certificates.each do |certificate| -%>
         certificates certificate_arn: <%= certificate.certificate_arn.inspect %>
-	<%- end -%>
-	<%- if listener.ssl_policy -%>
-	ssl_policy <%= listener.ssl_policy.inspect %>
-	<%- end -%>
-	port <%= listener.port %>
-	protocol <%= listener.protocol.inspect %>
-	<%- listener.default_actions.each do |action| -%>
+        <%- end -%>
+        <%- if listener.ssl_policy -%>
+        ssl_policy <%= listener.ssl_policy.inspect %>
+        <%- end -%>
+        port <%= listener.port %>
+        protocol <%= listener.protocol.inspect %>
+        <%- listener.default_actions.each do |action| -%>
 
         default_actions(
           target_group_name: <%= attr[:target_groups].find { |target_group| target_group.target_group_arn == action.target_group_arn }.target_group_name.inspect %>,
           target_group_arn: <%= action.target_group_arn.inspect %>,
-	  type: <%= action.type.inspect %>,
+          type: <%= action.type.inspect %>,
         )
-	<%- end -%>
+        <%- end -%>
 
         rules do
           <%- if attr[:rules_by_listener_arn][listener.listener_arn].reject(&:is_default).empty? -%>
           # no rules
           <%- end -%>
-	  <%- attr[:rules_by_listener_arn][listener.listener_arn].reject(&:is_default).each do |rule| -%>
-	  rule do
+          <%- attr[:rules_by_listener_arn][listener.listener_arn].reject(&:is_default).each do |rule| -%>
+          rule do
             rule_arn <%= rule.rule_arn.inspect %>
             priority <%= rule.priority.inspect %>
 
             <%- rule.actions.each do |action| -%>
-	    actions(
+            actions(
               target_group_name: <%= attr[:target_groups].find { |target_group| target_group.target_group_arn == action.target_group_arn }.target_group_name.inspect %>,
               target_group_arn: <%= action.target_group_arn.inspect %>,
-	      type: <%= action.type.inspect %>,
-	    )
+              type: <%= action.type.inspect %>,
+            )
 
             <%- end -%>
-	    conditions(
-	      <%- rule.conditions.each do |condition| -%>
-	      field: <%= condition.field.inspect %>,
-	      values: <%= condition.values.inspect %>,
-	      <%- end -%>
-	    )
-	  end
+            conditions(
+              <%- rule.conditions.each do |condition| -%>
+              field: <%= condition.field.inspect %>,
+              values: <%= condition.values.inspect %>,
+              <%- end -%>
+            )
+          end
             <%- if attr[:rules_by_listener_arn][listener.listener_arn].reject(&:is_default).last != rule -%>
 
             <%- end -%>
-	  <%- end -%>
+          <%- end -%>
         end
       end
         <%- if attr[:listeners].last != listener -%>

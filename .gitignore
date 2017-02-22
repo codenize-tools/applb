@@ -8,5 +8,5 @@
 /spec/reports/
 /tmp/
 spec/aws_config.yml
-ALBFile
+ALBfile
 *~
