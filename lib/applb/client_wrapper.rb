@@ -9,7 +9,7 @@ module Applb
       set_ip_address_type modify_load_balancer_attributes create_target_group
       modify_target_group delete_target_group create_listener modify_listener
       delete_listener describe_rules delete_rule create_load_balancer
-      create_rule modify_rule set_rule_priorities/
+      create_rule modify_rule set_rule_priorities describe_target_groups/
 
     def initialize(options)
       @includes = options[:includes] || []

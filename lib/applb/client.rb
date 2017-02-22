@@ -130,8 +130,21 @@ module Applb
       # delete
       aws_lb_by_name.each do |name, aws_lb|
         Applb.logger.info "Delete ELBv2 #{name}"
-        next if @options[:dry_run]
-        client.delete_load_balancer(aws_lb.load_balancer_arn)
+        aws_tgs = client.describe_target_groups(
+          load_balancer_arn: aws_lb.load_balancer_arn,
+        ).target_groups
+        unless @options[:dry_run]
+          client.delete_load_balancer(aws_lb.load_balancer_arn)
+          # wait until load_balancer is deleted
+          sleep 3
+        end
+        aws_tgs.each do |tg|
+          Applb.logger.info "Delete target_group associated #{tg.target_group_name}"
+          next if @options[:dry_run]
+          client.delete_target_group(
+            target_group_arn: tg.target_group_arn,
+          )
+        end
       end
     end
 
@@ -141,8 +154,8 @@ module Applb
       dsl_lb.modify_ip_address_type
       dsl_lb.modify_load_balancer_attributes
 
-      aws_target_group_by_name = traverse_target_groups(dsl_lb, aws_lb)
-      traverse_listeners(dsl_lb, aws_lb, aws_target_group_by_name)
+      traverse_target_groups(dsl_lb, aws_lb)
+      traverse_listeners(dsl_lb, aws_lb)
     end
 
     def traverse_target_groups(dsl_lb, aws_lb)
@@ -157,7 +170,6 @@ module Applb
       dsl_tg_by_name.reject { |n, _| aws_tg_by_name[n] }.each do |name, dsl_tg|
         aws_tg_by_name[name] = dsl_tg.create
       end
-      aws_target_group_by_name = aws_tg_by_name.dup
 
       # modify
       dsl_tg_by_name.each do |name, dsl_tg|
@@ -172,16 +184,21 @@ module Applb
         next if @options[:dry_run]
         # client.modify_listener({}) TODO remove from listener first
         client.delete_target_group(target_group_arn: aws_tg.target_group_arn)
-        aws_target_group_by_name.delete(name)
       end
-
-      aws_target_group_by_name
     end
 
-    def traverse_listeners(dsl_lb, aws_lb, aws_target_group_by_name)
+    def traverse_listeners(dsl_lb, aws_lb)
       aws_listener_by_port = @client.listeners(load_balancer_arn: aws_lb.load_balancer_arn).group_by(&:port).each_with_object({}) do |(k, v), h|
         h[k] = v.first
       end
+
+      aws_target_group_by_name = @client.target_groups.group_by(&:target_group_name).each_with_object({}) do |(k, v), h|
+        h[k] = v.first
+      end
+      aws_target_group_by_arn = aws_target_group_by_name.each_with_object({}) do |(k, v), h|
+        h[v.target_group_arn] = v
+      end
+
       dsl_listener_by_port = dsl_lb.listeners.group_by(&:port).each_with_object({}) do |(k, v), h|
         dsl_listener = v.first
         dsl_listener.load_balancer_arn = aws_lb.load_balancer_arn
@@ -204,16 +221,27 @@ module Applb
         next unless aws_listener
 
         target_group_name = dsl_listener.default_actions.first[:target_group_name]
-        dsl_listener.default_actions.first[:target_group_arn] = aws_target_group_by_name[target_group_name].target_group_arn
+        if target_group_name
+          dsl_listener.default_actions.first[:target_group_arn] = aws_target_group_by_name[target_group_name].target_group_arn
+        end
         dsl_listener.aws(aws_listener).modify
         traverse_rule(dsl_listener, aws_listener, aws_target_group_by_name)
       end
 
       # delete
       aws_listener_by_port.each do |port, aws_listener|
+        aws_actions = client.describe_rules(listener_arn: aws_listener.listener_arn).rules.map(&:actions).flatten
         Applb.logger.info("#{aws_lb.load_balancer_name} Delete listener for port #{port}")
-        next if @options[:dry_run]
-        client.delete_listener(listener_arn: aw_listener.listener_arn)
+        unless @options[:dry_run]
+          client.delete_listener(listener_arn: aws_listener.listener_arn)
+        end
+        (aws_actions + aws_listener.default_actions).each do |action|
+          aws_tg = aws_target_group_by_arn.delete(action.target_group_arn)
+          next unless aws_tg
+          Applb.logger.info("#{aws_lb.load_balancer_name} Delete target_group associated #{aws_tg.target_group_name}")
+          next if @options[:dry_run]
+          client.delete_target_group(target_group_arn: action.target_group_arn)
+        end
       end
     end
 
@@ -285,9 +313,12 @@ module Applb
     # @param [Aws::ElasticLodaBalancingV2::Types::LoadBalancer] lb
     def describe_tags(lbs)
       result = {}
-      resp = client.describe_tags(resource_arns: lbs.map(&:load_balancer_arn))
-      resp.tag_descriptions.each do |tag_desc|
-        result[tag_desc.resource_arn] = Hash[tag_desc.tags.map { |tag| [tag.key, tag.value] }]
+      arns = lbs.map(&:load_balancer_arn)
+      unless arns.empty?
+        resp = client.describe_tags(resource_arns: lbs.map(&:load_balancer_arn))
+        resp.tag_descriptions.each do |tag_desc|
+          result[tag_desc.resource_arn] = Hash[tag_desc.tags.map { |tag| [tag.key, tag.value] }]
+        end
       end
       result
     end

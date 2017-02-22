@@ -157,6 +157,8 @@ module Applb
           @result.name = name
           @result.attributes = Attributes.new(@context, @name) {}.result
           @result.instances = []
+          @result.target_groups = []
+          @result.listeners = []
 
           instance_eval(&block)
         end

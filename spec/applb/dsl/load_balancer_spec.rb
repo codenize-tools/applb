@@ -24,8 +24,8 @@ RSpec.describe Applb::DSL::EC2::LoadBalancer do
         expect(lb.tags).to be_nil
         expect(lb.ip_address_type).to be_nil
         expect(lb.attributes.length).to eq(5)
-        expect(lb.target_groups).to be_nil
-        expect(lb.listeners).to be_nil
+        expect(lb.target_groups).to be_empty
+        expect(lb.listeners).to be_empty
         expect(lb.load_balancer_arn).to be_nil
       end
     end
