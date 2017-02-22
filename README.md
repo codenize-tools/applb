@@ -205,7 +205,7 @@ end
 
 ## Use template
 
-```
+```ruby
 template "target_groups" do
   target_groups do
     target_group "my-target-group" do
