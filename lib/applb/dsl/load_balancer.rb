@@ -29,7 +29,7 @@ module Applb
           end
 
           def create
-            Applb.logger.info "Create ELBv2 #{name}"
+            Applb.logger.info "Create ELB v2 #{name}"
             return if @options[:dry_run]
 
             client.create_load_balancer(create_option).load_balancers.first

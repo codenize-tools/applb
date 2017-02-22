@@ -129,7 +129,7 @@ module Applb
 
       # delete
       aws_lb_by_name.each do |name, aws_lb|
-        Applb.logger.info "Delete ELBv2 #{name}"
+        Applb.logger.info "Delete ELB v2 #{name}"
         aws_tgs = client.describe_target_groups(
           load_balancer_arn: aws_lb.load_balancer_arn,
         ).target_groups
