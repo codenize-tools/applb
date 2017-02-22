@@ -45,7 +45,6 @@ module Applb
                 Applb.logger.info("<diff>\n#{Applb::Utils.diff(aws_hash, dsl_hash, color: @options[:color])}")
                 return if @options[:dry_run]
 
-                puts modify_option
                 client.modify_target_group(modify_option).target_groups.first
               end
 
