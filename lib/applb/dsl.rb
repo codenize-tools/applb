@@ -30,7 +30,7 @@ module Applb
     end
 
     def require(file)
-      albfile = (file =~ %r|\A/|) ? file : File.expand_path(File.join(File.dirname(@path), file))
+      albfile = (file =~ %r|\A/|) ? file : File.expand_path(File.join(File.dirname(@filepath), file))
 
       if File.exist?(albfile)
         instance_eval(File.read(albfile), albfile)
