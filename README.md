@@ -205,12 +205,12 @@ end
 
 ## Use template
 
-```
+```ruby
 template "target_groups" do
   target_groups do
     target_group "my-target-group" do
       protocol "HTTP"
-      port context.port || 80 # use default 80 or override context value
+      port context.port || 80 # use default 80 or override with context value
       vpc_id "vpc-XXXXXXXX"
       health_check_interval_seconds 30
       health_check_path "/healthcheck"
