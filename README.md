@@ -1,6 +1,6 @@
 # Applb
 
-[![Build Status](https://travis-ci.org/wata-gh/applb.svg)](https://travis-ci.org/wata-gh/applb)
+[![Build Status](https://travis-ci.org/codenize-tools/applb.svg)](https://travis-ci.org/codenize-tools/applb)
 
 Applb is a tool to manage ELB v2(ALB).
 It defines the state of ELB v2(ALB) using DSL, and updates ELB v2(ALB) according to DSL.
@@ -238,7 +238,7 @@ end
 
 ## Test
 
-set your AWS arn for [spec/aws_config.yml.sample](https://github.com/wata-gh/applb/blob/master/spec/aws_config.yml.sample) and rename to spec/aws_config.yml.
+set your AWS arn for [spec/aws_config.yml.sample](https://github.com/codenize-tools/applb/blob/master/spec/aws_config.yml.sample) and rename to spec/aws_config.yml.
 
 ## Similar tools
 
@@ -246,7 +246,7 @@ set your AWS arn for [spec/aws_config.yml.sample](https://github.com/wata-gh/app
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/wata-gh/applb.
+Bug reports and pull requests are welcome on GitHub at https://github.com/codenize-tools/applb.
 
 
 ## License
