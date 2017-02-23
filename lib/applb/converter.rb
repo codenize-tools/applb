@@ -16,7 +16,8 @@ module Applb
     private
 
     def output_alb(vpc_id, tags_by_arn, lbs_by_name)
-      ERB.new(File.read('lib/applb/output_alb.erb'), nil, '-').result(binding)
+      path = Pathname.new(File.expand_path('../', __FILE__)).join('output_alb.erb')
+      ERB.new(path.read, nil, '-').result(binding)
     end
   end
 end
