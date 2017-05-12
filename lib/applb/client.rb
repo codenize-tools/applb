@@ -39,11 +39,12 @@ module Applb
 
       lbs = client.load_balancers
       tags_by_arn = describe_tags(lbs)
-      
+
       lbs.each do |lb|
         attributes = client.load_balancer_attributes(load_balancer_arn: lb.load_balancer_arn)
         target_groups = describe_target_groups(lb)
         listeners = describe_listeners(lb)
+        instances_by_target_group_arn = instances_by_target_group_arn(target_groups)
         rules_by_listener_arn = listeners.each_with_object({}) do |listener, rules_by_listener_arn|
           rules_by_listener_arn[listener.listener_arn] = describe_rules(listener)
         end
@@ -53,6 +54,7 @@ module Applb
           target_groups,
           listeners,
           rules_by_listener_arn,
+          instances_by_target_group_arn,
         )
       end
 
@@ -335,12 +337,20 @@ module Applb
       client.rules(listener_arn: listener.listener_arn)
     end
 
+    def instances_by_target_group_arn(target_groups)
+      instances = target_groups.map do |target_group|
+        client.target_group_instances(target_group.target_group_arn)
+      end
+      Hash[target_groups.map(&:target_group_arn).zip(instances)]
+    end
+
     # @param [Aws::ElasticLodaBalancingV2::Types::LoadBalancer] lb
     # @param [Array<Types::LoadBalancerAttribute>] attrs
     # @param [Array<Types::TargetGroup>] target_groups
     # @param [Array<Types::Listener>] listeners
     # @param [Hash] rules_by_listener_arn
-    def export_lb(lb, attrs, target_groups, listeners, rules_by_listener_arn)
+    # @param [Hash] instances_by_target_group_arn
+    def export_lb(lb, attrs, target_groups, listeners, rules_by_listener_arn, instances_by_target_group_arn)
       {
         availability_zones: lb.availability_zones.map { |az| Hash[az.each_pair.to_a] },
         canonical_hosted_zone_id: lb.canonical_hosted_zone_id,
@@ -358,6 +368,7 @@ module Applb
         target_groups: target_groups,
         listeners: listeners,
         rules_by_listener_arn: rules_by_listener_arn,
+        instances_by_target_group_arn: instances_by_target_group_arn,
       }
     end
 

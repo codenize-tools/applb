@@ -27,10 +27,7 @@ module Applb
 
               def aws(aws_tg)
                 @aws_tg = aws_tg
-                @aws_instances = client.
-                  describe_target_health(target_group_arn: @aws_tg.target_group_arn).
-                  target_health_descriptions.reject { |description| description.target_health.state == "draining" }.
-                  map(&:target).map(&:id).sort
+                @aws_instances = client.target_group_instances(@aws_tg.target_group_arn)
                 self
               end
 
@@ -88,14 +85,16 @@ module Applb
                 return if instances == @aws_instances
 
                 register_targets = (instances - @aws_instances).map do |instance|
-                  {id: instance}
+                  instance_id = client.instance_names.key(instance) || instance
+                  {id: instance_id}
                 end
                 if !register_targets.empty?
                   client.register_targets(target_group_arn: @aws_tg.target_group_arn, targets: register_targets)
                 end
 
                 deregister_targets = (@aws_instances - instances).map do |instance|
-                  {id: instance}
+                  instance_id = client.instance_names.key(instance) || instance
+                  {id: instance_id}
                 end
                 if !deregister_targets.empty?
                   client.deregister_targets(target_group_arn: @aws_tg.target_group_arn, targets: deregister_targets)

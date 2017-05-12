@@ -55,6 +55,11 @@ ec2 <%= vpc_id.inspect %> do
         healthy_threshold_count <%= target_group.healthy_threshold_count %>
         unhealthy_threshold_count <%= target_group.unhealthy_threshold_count %>
         matcher http_code: <%= target_group.matcher.http_code.inspect %>
+        instances(
+        <%- attr[:instances_by_target_group_arn][target_group.target_group_arn].each do |instance| -%>
+          <%= instance.inspect %>,
+        <%- end -%>
+        )
       end
       <%- end -%>
     end

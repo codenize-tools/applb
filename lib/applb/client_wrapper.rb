@@ -12,10 +12,13 @@ module Applb
       create_rule modify_rule set_rule_priorities describe_target_groups
       describe_target_health register_targets deregister_targets/
 
+    def_delegators :@ec2_client, *%i/instances/
+
     def initialize(options)
       @includes = options[:includes] || []
       @excludes = options[:excludes] || []
       @client = Aws::ElasticLoadBalancingV2::Client.new
+      @ec2_client = Aws::EC2::Resource.new
     end
 
     def load_balancers
@@ -69,7 +72,23 @@ module Applb
       resp = @client.describe_load_balancer_attributes(*argv)
       resp.attributes
     end
-    
+
+    def target_group_instances(arn)
+      describe_target_health(target_group_arn: arn).
+        target_health_descriptions.reject { |description| description.target_health.state == "draining" }.
+        map(&:target).map { |instance| instance_names[instance.id] || instance.id }.sort
+    end
+
+    def instance_names
+      @instance_names ||= begin
+        resp = instances.to_a
+        instance_names = resp.map do |instance|
+          instance.tags.find { |tag| tag.key == "Name" }&.value
+        end
+        Hash[resp.map(&:id).zip(instance_names)]
+      end
+    end
+
     private
 
     def target?(lb)
