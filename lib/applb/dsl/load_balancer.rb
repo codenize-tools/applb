@@ -11,7 +11,7 @@ module Applb
         include Applb::TemplateHelper
 
         class Result
-          ATTRIBUTES = %i/name instances scheme subnets security_groups tags ip_address_type attributes target_groups listeners load_balancer_arn/
+          ATTRIBUTES = %i/name scheme subnets security_groups tags ip_address_type attributes target_groups listeners load_balancer_arn/
           attr_accessor *ATTRIBUTES
 
           def initialize(context)
@@ -156,7 +156,6 @@ module Applb
           @result = Result.new(@context)
           @result.name = name
           @result.attributes = Attributes.new(@context, @name) {}.result
-          @result.instances = []
           @result.target_groups = []
           @result.listeners = []
 
