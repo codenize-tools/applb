@@ -6,7 +6,8 @@ RSpec.describe Applb::DSL::EC2::LoadBalancer::TargetGroups::TargetGroup do
   let(:context) { Hashie::Mash.new(options: { color: true}) }
   let(:lb) { nil }
   let(:tg_name) { 'target_group' }
-  
+  let(:client) { Aws::ElasticLoadBalancingV2::Client.new }
+
   describe '#initialize' do
     context 'no values set' do
       subject(:tg) do
@@ -30,6 +31,7 @@ RSpec.describe Applb::DSL::EC2::LoadBalancer::TargetGroups::TargetGroup do
         expect(tg.healthy_threshold_count).to be_nil
         expect(tg.unhealthy_threshold_count).to be_nil
         expect(tg.matcher).to be_nil
+        expect(tg.instances).to be_empty
       end
     end
 
@@ -47,6 +49,7 @@ RSpec.describe Applb::DSL::EC2::LoadBalancer::TargetGroups::TargetGroup do
           healthy_threshold_count 2
           unhealthy_threshold_count 2
           matcher http_code: "200"
+          instances 'i-00000000000000000'
         end.result
       end
 
@@ -63,17 +66,17 @@ RSpec.describe Applb::DSL::EC2::LoadBalancer::TargetGroups::TargetGroup do
         expect(tg.healthy_threshold_count).to eq(2)
         expect(tg.unhealthy_threshold_count).to eq(2)
         expect(tg.matcher).to eq({ http_code: '200' })
+        expect(tg.instances).to eq(['i-00000000000000000'])
       end
     end
   end
 
   describe '#create' do
-    after(:all) do
-      @client = Aws::ElasticLoadBalancingV2::Client.new
-      @client.describe_target_groups(
+    after do
+      client.describe_target_groups(
         names: ['applb-test-target-group-001']
       ).target_groups.each do |tg|
-        @client.delete_target_group(target_group_arn: tg.target_group_arn)
+        client.delete_target_group(target_group_arn: tg.target_group_arn)
       end
     end
 
@@ -90,6 +93,7 @@ RSpec.describe Applb::DSL::EC2::LoadBalancer::TargetGroups::TargetGroup do
         healthy_threshold_count 2
         unhealthy_threshold_count 2
         matcher http_code: "200"
+        instances *AWS_CONFIG[:instances].map(&:name)
       end.result
     end
 
@@ -108,13 +112,16 @@ RSpec.describe Applb::DSL::EC2::LoadBalancer::TargetGroups::TargetGroup do
       expect(result.healthy_threshold_count).to eq(2)
       expect(result.unhealthy_threshold_count).to eq(2)
       expect(result.matcher.http_code).to eq('200')
+
+      instance_ids = client.describe_target_health(target_group_arn: result.target_group_arn).
+        target_health_descriptions.map(&:target).map(&:id)
+      expect(instance_ids).to match_array(AWS_CONFIG[:instances].map(&:id))
     end
   end
 
   describe '#modify' do
-    before(:all) do
-      @client = Aws::ElasticLoadBalancingV2::Client.new
-      @tg = @client.create_target_group(
+    before do
+      @tg = client.create_target_group(
         name: 'applb-test-target-group-001',
         protocol: 'HTTP',
         port: 80,
@@ -128,11 +135,15 @@ RSpec.describe Applb::DSL::EC2::LoadBalancer::TargetGroups::TargetGroup do
         unhealthy_threshold_count: '5',
         matcher: { http_code: '200' },
       ).target_groups.first
+      client.register_targets(
+        target_group_arn: @tg.target_group_arn,
+        targets: AWS_CONFIG[:instances].map { |instance| {id: instance.id} }
+      )
     end
 
-    after(:all) do
+    after do
       if @tg
-        @client.delete_target_group(target_group_arn: @tg.target_group_arn)
+        client.delete_target_group(target_group_arn: @tg.target_group_arn)
       end
     end
 
@@ -149,6 +160,7 @@ RSpec.describe Applb::DSL::EC2::LoadBalancer::TargetGroups::TargetGroup do
         healthy_threshold_count 2
         unhealthy_threshold_count 2
         matcher http_code: "200,301"
+        instances *AWS_CONFIG[:another_instances].map(&:name)
       end.result
     end
 
@@ -168,6 +180,10 @@ RSpec.describe Applb::DSL::EC2::LoadBalancer::TargetGroups::TargetGroup do
       expect(result.healthy_threshold_count).to eq(2)
       expect(result.unhealthy_threshold_count).to eq(2)
       expect(result.matcher.http_code).to eq('200,301')
+
+      instance_ids = client.describe_target_health(target_group_arn: result.target_group_arn).
+        target_health_descriptions.map(&:target).map(&:id)
+      expect(instance_ids).to match_array(AWS_CONFIG[:another_instances].map(&:id))
     end
   end
 end

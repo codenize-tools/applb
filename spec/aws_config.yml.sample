@@ -9,3 +9,14 @@ vpc_id: vpc-00000000
 default_security_group: sg-00000000
 security_groups:
   - sg-00000001
+instances:
+  -
+    id: i-00000000000000001
+    name: hostname1
+  -
+    id: i-00000000000000002
+    name: hostname2
+another_instances:
+  -
+    id: i-00000000000000003
+    name: hostname3
