@@ -34,7 +34,10 @@ module Applb
               def create
                 Applb.logger.info("Create target group #{name}")
                 return if @options[:dry_run]
-                client.create_target_group(create_option).target_groups.first
+
+                tg = client.create_target_group(create_option).target_groups.first
+                register_instances(tg, instances)
+                tg
               end
 
               def modify
@@ -46,8 +49,10 @@ module Applb
                 Applb.logger.info("<diff>\n#{Applb::Utils.diff(aws_hash, dsl_hash, color: @options[:color])}")
                 return if @options[:dry_run]
 
-                modify_instances
-                client.modify_target_group(modify_option).target_groups.first
+                tg = client.modify_target_group(modify_option).target_groups.first
+                register_instances(tg, instances - @aws_instances)
+                deregister_instances(tg, @aws_instances - instances)
+                tg
               end
 
               private
@@ -81,23 +86,23 @@ module Applb
                 Hash[hash.sort]
               end
 
-              def modify_instances
-                return if instances == @aws_instances
-
-                register_targets = (instances - @aws_instances).map do |instance|
+              def register_instances(tg, target_instances)
+                targets = target_instances.map do |instance|
                   instance_id = client.instance_names.key(instance) || instance
                   {id: instance_id}
                 end
-                if !register_targets.empty?
-                  client.register_targets(target_group_arn: @aws_tg.target_group_arn, targets: register_targets)
+                if !targets.empty?
+                  client.register_targets(target_group_arn: tg.target_group_arn, targets: targets)
                 end
+              end
 
-                deregister_targets = (@aws_instances - instances).map do |instance|
+              def deregister_instances(tg, target_instances)
+                targets = target_instances.map do |instance|
                   instance_id = client.instance_names.key(instance) || instance
                   {id: instance_id}
                 end
-                if !deregister_targets.empty?
-                  client.deregister_targets(target_group_arn: @aws_tg.target_group_arn, targets: deregister_targets)
+                if !targets.empty?
+                  client.deregister_targets(target_group_arn: tg.target_group_arn, targets: targets)
                 end
               end
 
