@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Codenize ELB v2 (ALB)}
   spec.description   = %q{Manage ALB by DSL}
-  spec.homepage      = 'http://github.com/wata-gh/applb'
+  spec.homepage      = 'https://github.com/codenize-tools/applb'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
