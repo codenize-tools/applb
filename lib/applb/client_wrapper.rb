@@ -40,6 +40,7 @@ module Applb
       begin
         resp = @client.describe_target_groups(*argv)
         results.push(*resp.target_groups)
+        next_marker = resp.next_marker
       end while next_marker
       results
     end
@@ -50,6 +51,7 @@ module Applb
       begin
         resp = @client.describe_listeners(*argv)
         results.push(*resp.listeners)
+        next_marker = resp.next_marker
       end while next_marker
       results
     end
@@ -60,6 +62,7 @@ module Applb
       begin
         resp = @client.describe_rules(*argv)
         results.push(*resp.rules)
+        next_marker = resp.next_marker
       end while next_marker
       results
     end

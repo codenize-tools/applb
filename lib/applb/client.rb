@@ -369,9 +369,9 @@ module Applb
         when 'access_logs.s3.enabled' then
           (result['access_logs'] ||= {s3: {}})[:s3][:enabled] = attr.value
         when 'access_logs.s3.prefix' then
-          result['access_logs'] ||= {s3: {}}[:s3][:prefix] = attr.value
+          (result['access_logs'] ||= {s3: {}})[:s3][:prefix] = attr.value
         when 'access_logs.s3.bucket' then
-          result['access_logs'] ||= {s3: {}}[:s3][:bucket] = attr.value
+          (result['access_logs'] ||= {s3: {}})[:s3][:bucket] = attr.value
         else
           result[attr.key] = attr.value
         end
