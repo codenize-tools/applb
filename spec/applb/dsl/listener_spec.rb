@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'applb/dsl'
-require 'aws-sdk'
+require 'aws-sdk-elasticloadbalancingv2'
 require 'pry'
 
 RSpec.describe Applb::DSL::EC2::LoadBalancer::Listeners::Listener do

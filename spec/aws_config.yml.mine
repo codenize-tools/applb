@@ -1,0 +1,11 @@
+certificate_arn: arn:aws:acm:ap-northeast-1:710734700391:certificate/93b6a5f0-c108-4f15-b451-ea84e5ad8e77
+subnets:
+  - subnet-aeb810f7
+  - subnet-9ab021ed
+another_subnets:
+  - subnet-7fb91126
+  - subnet-5ab3222d
+vpc_id: vpc-efe24e87
+default_security_group: sg-26d33649
+security_groups:
+  - sg-b15028d6

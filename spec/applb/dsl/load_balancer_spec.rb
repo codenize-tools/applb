@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'aws-sdk'
+require 'aws-sdk-elasticloadbalancingv2'
 require 'applb/dsl'
 
 RSpec.describe Applb::DSL::EC2::LoadBalancer do
