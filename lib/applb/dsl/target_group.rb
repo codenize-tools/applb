@@ -11,7 +11,7 @@ module Applb
               ATTRIBUTES = %i/
                 name protocol port vpc_id health_check_protocol health_check_port health_check_path
                 health_check_interval_seconds health_check_timeout_seconds healthy_threshold_count
-                unhealthy_threshold_count matcher
+                unhealthy_threshold_count matcher target_type
               /
 
               attr_accessor *ATTRIBUTES
@@ -43,6 +43,10 @@ module Applb
 
                 Applb.logger.info("Modify target group #{name}")
                 Applb.logger.info("<diff>\n#{Applb::Utils.diff(aws_hash, dsl_hash, color: @options[:color])}")
+                if unmodifiable_attributes_updated?(dsl_hash, aws_hash)
+                  raise 'Can not modify unmodifiable attributes.'
+                end
+
                 return if @options[:dry_run]
 
                 client.modify_target_group(modify_option).target_groups.first
@@ -54,11 +58,22 @@ module Applb
                 to_h
               end
 
-              UNMODIFIABLE_ATTRIBUTES = %i/name port protocol vpc_id/
+              UNMODIFIABLE_ATTRIBUTES = %i/name port protocol vpc_id target_type/
               def modify_option
                 options = to_h.
                   merge(target_group_arn: @aws_tg.target_group_arn).
                   reject! { |k, v| UNMODIFIABLE_ATTRIBUTES.include?(k) }
+              end
+
+              def unmodifiable_attributes_updated?(dsl_hash, aws_hash)
+                updated = false
+                UNMODIFIABLE_ATTRIBUTES.each do |n|
+                  if dsl_hash[n] != aws_hash[n]
+                    updated = true
+                    Applb.logger.error("can not modify target_group `#{n}'")
+                  end
+                end
+                updated
               end
 
               def to_diff_h
@@ -85,6 +100,7 @@ module Applb
               @lb_name = lb_name
               @result = Result.new(@context)
               @result.name = name
+              @result.target_type = 'instance' # default value
 
               instance_eval(&block)
             end
@@ -146,6 +162,10 @@ module Applb
 
             def matcher(http_code:)
               @result.matcher = { http_code: http_code }
+            end
+
+            def target_type(target_type)
+              @result.target_type = target_type
             end
           end
         end

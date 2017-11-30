@@ -1,5 +1,5 @@
 require 'forwardable'
-require 'aws-sdk'
+require 'aws-sdk-elasticloadbalancingv2'
 
 module Applb
   class ClientWrapper

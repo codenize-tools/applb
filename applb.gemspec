@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'aws-sdk', '~> 2'
+  spec.add_dependency 'aws-sdk-elasticloadbalancingv2', '>= 1.6.0'
   spec.add_dependency 'hashie'
   spec.add_dependency 'diffy'
   spec.add_dependency 'term-ansicolor'
