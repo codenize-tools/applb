@@ -47,7 +47,7 @@ module Applb
         opts.on('-i', '--include-names NAMES', 'include ELB v2(ALB) names', Array) { |v| @options[:includes] = v }
         opts.on('-x', '--exclude-names NAMES', 'exclude ELB v2(ALB) names by regex, or comma-separated ELB names', Array) do |v|
           @options[:excludes] = v.map! do |name|
-            name =~ /\A\/(.*)\/\z/ ? Regexp.new($1) : Regexp.new("\A#{Regexp.escape(name)}\z")
+            name =~ %r{\A/(.*)/\z} ? Regexp.new(Regexp.last_match(1)) : Regexp.new("\A#{Regexp.escape(name)}\z")
           end
         end
       end
