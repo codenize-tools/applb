@@ -37,13 +37,19 @@ applb -a             # apply `ALBfile` to ELB
 
 ```
 Usage: applb [options]
+    -p, --profile PROIFILE_NAME
+        --credentials-path PATH
+    -k, --access-key ACCESS_KEY
+    -s, --secret-key SECRET_KEY
+    -r, --region REGION
     -h, --help                       Show help
     -v, --debug                      Show debug log
     -a, --apply                      apply DSL
     -e, --export                     export to DSL
     -n, --dry-run                    dry run
     -f, --file FILE                  use selected DSL file
-    -s, --split                      split export DSL file to 1 per VPC
+        --split
+                                     split export DSL file to 1 per VPC
         --split-more
                                      split export DSL file to 1 per load balancer
         --no-color
