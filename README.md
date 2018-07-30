@@ -48,8 +48,7 @@ Usage: applb [options]
     -e, --export                     export to DSL
     -n, --dry-run                    dry run
     -f, --file FILE                  use selected DSL file
-        --split
-                                     split export DSL file to 1 per VPC
+    -s, --split                      split export DSL file to 1 per VPC
         --split-more
                                      split export DSL file to 1 per load balancer
         --no-color
