@@ -10,3 +10,4 @@
 spec/aws_config.yml
 ALBfile
 *~
+/vendor/

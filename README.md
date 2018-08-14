@@ -53,6 +53,8 @@ Usage: applb [options]
                                      split export DSL file to 1 per load balancer
         --no-color
                                      no color
+        --use-bundled-cert
+                                     Use the certificates bundled with aws-sdk-ruby
     -i, --include-names NAMES        include ELB v2(ALB) names
     -x, --exclude-names NAMES        exclude ELB v2(ALB) names by regex
 ```
