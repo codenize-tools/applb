@@ -37,6 +37,11 @@ applb -a             # apply `ALBfile` to ELB
 
 ```
 Usage: applb [options]
+    -p, --profile PROIFILE_NAME
+        --credentials-path PATH
+    -k, --access-key ACCESS_KEY
+    -s, --secret-key SECRET_KEY
+    -r, --region REGION
     -h, --help                       Show help
     -v, --debug                      Show debug log
     -a, --apply                      apply DSL
@@ -48,6 +53,8 @@ Usage: applb [options]
                                      split export DSL file to 1 per load balancer
         --no-color
                                      no color
+        --use-bundled-cert
+                                     Use the certificates bundled with aws-sdk-ruby
     -i, --include-names NAMES        include ELB v2(ALB) names
     -x, --exclude-names NAMES        exclude ELB v2(ALB) names by regex
 ```

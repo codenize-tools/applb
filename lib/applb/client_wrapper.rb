@@ -14,7 +14,8 @@ module Applb
     def initialize(options)
       @includes = options[:includes] || []
       @excludes = options[:excludes] || []
-      @client = Aws::ElasticLoadBalancingV2::Client.new
+      aws_config = options.delete(:aws_config) || {}
+      @client = Aws::ElasticLoadBalancingV2::Client.new(aws_config)
     end
 
     def load_balancers
