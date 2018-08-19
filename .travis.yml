@@ -3,7 +3,7 @@ sudo: false
 rvm:
 - 2.3.3
 before_install:
-- openssl aes-256-cbc -K $encrypted_71ed01610bce_key -iv $encrypted_71ed01610bce_iv -in aws_config.yml.enc -out spec/aws_config.yml -d
+- openssl aes-256-cbc -K $encrypted_0a6446eb3ae3_key -iv $encrypted_0a6446eb3ae3_iv -in aws_config.yml.enc -out spec/aws_config.yml -d
 - gem install bundler
 matrix:
   allow_failures:
